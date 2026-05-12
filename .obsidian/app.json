@@ -1,0 +1,14 @@
+{
+  "readableLineLength": false,
+  "showInlineTitle": false,
+  "alwaysUpdateLinks": true,
+  "userIgnoreFilters": [
+    "assets/",
+    "downloads/",
+    "envs/",
+    "src/",
+    "tests/",
+    "tmp/",
+    "docs/reports/"
+  ]
+}

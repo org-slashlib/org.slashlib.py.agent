@@ -1,0 +1,54 @@
+# ====================================================================
+# .gitignore für AI Node For Discord
+# ====================================================================
+
+# --- Python & Cache ---
+# Wir ignorieren den zentralen Bytecode-Cache, den wir via env.ps1 umgeleitet haben
+.pycache/
+.pytest_cache/
+.coverage
+*.egg-info/
+
+# Falls doch mal irgendwo lokal __pycache__ oder .pyc Dateien entstehen:
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Assets ---
+*.keys.json
+
+# --- Binaries & Externe Programme ---
+# Programme im /bin Ordner werden nicht versioniert (da sie groß und plattformabhängig sind)
+bin/
+
+# --- Python Environments ---
+# Die virtuellen Umgebungen enthalten tausende Dateien und werden lokal generiert
+envs/
+
+# --- Temporäre Dateien ---
+tmp/
+
+# --- Laufzeitdaten ---
+data/
+
+# --- Logs & Systemdateien ---
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+DO NOT RENAME OR MOVE.md
+
+# --- Obsidian Spezifisches ---
+# Wir behalten die Notizen in docs/, aber ignorieren die Workspace-Settings von Obsidian
+.obsidian/workspace.json
+.obsidian/graph.json
+
+# --- Lokale Konfiguration / Secrets ---
+# Falls du sensible Daten (API-Tokens) in separaten Dateien speicherst
+.env
+.venv
+*.local
+
+# --- Ausnahme (Whitelist) ---
+# Falls du bestimmte Dateien in ansonsten ignorierten Ordnern DOCH behalten willst:
+# !data/.gitkeep

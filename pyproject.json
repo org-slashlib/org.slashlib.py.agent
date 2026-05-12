@@ -1,0 +1,21 @@
+{
+  "name": "Python Agent",
+  "version": "0.1.0",
+  "paths": {
+    "root":         "{ROOT}",
+    "assets":       "{ROOT}/assets",
+    "downloads":    "{ROOT}/downloads",
+    "tmp":          "{ROOT}/tmp"
+  },
+  "assets": {
+    "keys":         "{paths.assets}/ainode.keys.json",
+    "logging":      "{paths.assets}/logging.json"
+  },
+  "adapter": {
+    "ollama": {
+      "model":      "gemma4",
+      "think":      true,
+      "timeout":    600.0
+    }
+  }
+}

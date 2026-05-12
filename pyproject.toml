@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "org.slashlib.py.agent"
+version = "0.1.0"
+dependencies = [
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = """
+    -v  
+    --cov 
+    --cov=src/org/slashlib/py/agent 
+    --cov-report=term-missing 
+    --cov-report=xml:docs/reports/coverage/xml
+    --cov-report=html:docs/reports/coverage/html
+"""
+
+[tool.coverage.run]
+source = ["src/org/slashlib/py/agent"]
+omit = ["src/org/slashlib/py/agent/__main__.py"]
+
+[tool.coverage.report]
+show_missing = true

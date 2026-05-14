@@ -13,10 +13,10 @@
 #   - Do NOT delete existing examples or descriptions in pydoc.
 # - LANGUAGE: en-US for all comments and documentation.
 
-from src.org.slashlib.py.agent.agent import Agent
-from src.org.slashlib.py.agent.tool import tool
-from src.org.slashlib.py.agent.agent_response import AgentResponse
-from src.org.slashlib.py.agent.inference_bases import (
+from org.slashlib.py.agent.agent import Agent
+from org.slashlib.py.agent.tool import tool
+from org.slashlib.py.agent.agent_response import AgentResponse
+from org.slashlib.py.agent.inference_bases import (
     InferenceAdapter,
     InferenceResult,
     InferenceError,
@@ -24,7 +24,7 @@ from src.org.slashlib.py.agent.inference_bases import (
     InferenceConfigError,
     InferencePayloadError
 )
-from src.org.slashlib.py.agent.inference_complements_for_ollama import (
+from org.slashlib.py.agent.inference_complements_for_ollama import (
     OllamaInferenceAdapter,
     OllamaInferenceResult
 )

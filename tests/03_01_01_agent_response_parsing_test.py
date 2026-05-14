@@ -21,7 +21,7 @@ import typing
 import pytest
 
 # Internal imports
-from src.org.slashlib.py.agent.agent_response import AgentResponse
+from org.slashlib.py.agent.agent_response import AgentResponse
 
 
 def test_agent_response_init_and_empty():

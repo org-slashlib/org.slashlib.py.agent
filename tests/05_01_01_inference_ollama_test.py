@@ -23,11 +23,11 @@ import pytest
 import ollama
 
 # Internal imports
-from src.org.slashlib.py.agent.inference_complements_for_ollama import (
+from org.slashlib.py.agent.inference_complements_for_ollama import (
     OllamaInferenceResult, 
     OllamaInferenceAdapter
 )
-from src.org.slashlib.py.agent.inference_bases import (
+from org.slashlib.py.agent.inference_bases import (
     InferencePayloadError,
     InferenceConfigError,
     InferenceConnectionError,

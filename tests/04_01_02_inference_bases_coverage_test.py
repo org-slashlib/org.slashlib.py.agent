@@ -21,7 +21,7 @@ import typing
 import pytest
 
 # Internal imports
-from src.org.slashlib.py.agent.inference_bases import InferenceResult, InferenceAdapter
+from org.slashlib.py.agent.inference_bases import InferenceResult, InferenceAdapter
 
 
 def test_inference_result_pass_coverage():

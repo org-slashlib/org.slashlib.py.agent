@@ -21,7 +21,7 @@ import typing
 import pytest
 
 # Internal imports
-from src.org.slashlib.py.agent.agent_response import AgentResponse
+from org.slashlib.py.agent.agent_response import AgentResponse
 
 
 def test_append_context_missing_role_or_content(caplog):

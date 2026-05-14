@@ -24,7 +24,7 @@ import ollama
 import org.slashlib.py.configloader as config
 
 # Internal imports
-import src.org.slashlib.py.agent.inference_bases as inference
+import org.slashlib.py.agent.inference_bases as inference
 
 
 class OllamaInferenceResult(inference.InferenceResult):

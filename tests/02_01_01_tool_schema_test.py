@@ -21,7 +21,7 @@ import typing
 import pytest
 
 # Internal imports
-from src.org.slashlib.py.agent.tool import Tool, tool
+from org.slashlib.py.agent.tool import Tool, tool
 
 
 def test_tool_schema_generation_basic():

@@ -24,10 +24,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # Internal imports
-from src.org.slashlib.py.agent.agent import Agent, _instances
-from src.org.slashlib.py.agent.tool import Tool
-from src.org.slashlib.py.agent.inference_bases import InferenceAdapter, InferenceResult, InferenceError
-from src.org.slashlib.py.agent.agent_response import AgentResponse
+from org.slashlib.py.agent.agent import Agent, _instances
+from org.slashlib.py.agent.tool import Tool
+from org.slashlib.py.agent.inference_bases import InferenceAdapter, InferenceResult, InferenceError
+from org.slashlib.py.agent.agent_response import AgentResponse
 
 
 @pytest.fixture(autouse=True)

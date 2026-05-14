@@ -49,11 +49,11 @@ def test_import_internal_modules():
     This validates the PYTHONPATH and package layout.
     """
     internal_modules = [
-        "src.org.slashlib.py.agent.agent",
-        "src.org.slashlib.py.agent.tool",
-        "src.org.slashlib.py.agent.agent_response",
-        "src.org.slashlib.py.agent.inference_bases",
-        "src.org.slashlib.py.agent.inference_complements_for_ollama"
+        "org.slashlib.py.agent.agent",
+        "org.slashlib.py.agent.tool",
+        "org.slashlib.py.agent.agent_response",
+        "org.slashlib.py.agent.inference_bases",
+        "org.slashlib.py.agent.inference_complements_for_ollama"
     ]
     for module_name in internal_modules:
         try:

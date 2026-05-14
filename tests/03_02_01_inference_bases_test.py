@@ -21,7 +21,7 @@ import typing
 import pytest
 
 # Internal imports
-from src.org.slashlib.py.agent.inference_bases import (
+from org.slashlib.py.agent.inference_bases import (
     InferenceError,
     InferenceConnectionError,
     InferenceConfigError,

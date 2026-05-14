@@ -21,7 +21,7 @@ import typing
 import pytest
 
 # Internal imports
-from src.org.slashlib.py.agent.tool import Tool
+from org.slashlib.py.agent.tool import Tool
 
 
 @pytest.mark.asyncio

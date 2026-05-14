@@ -22,7 +22,7 @@ from typing import List, Optional, Union
 import pytest
 
 # Internal imports
-from src.org.slashlib.py.agent.tool import Tool
+from org.slashlib.py.agent.tool import Tool
 
 
 def test_tool_complex_list_type():

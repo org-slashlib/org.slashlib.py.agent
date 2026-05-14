@@ -24,9 +24,9 @@ import typing
 import org.slashlib.py.configloader as config
 
 # Internal imports
-import src.org.slashlib.py.agent.tool as tool
-import src.org.slashlib.py.agent.agent_response as response
-import src.org.slashlib.py.agent.inference_bases as inference
+import org.slashlib.py.agent.tool as tool
+import org.slashlib.py.agent.agent_response as response
+import org.slashlib.py.agent.inference_bases as inference
 
 
 # Module-level instance registry to implement the Multiton pattern

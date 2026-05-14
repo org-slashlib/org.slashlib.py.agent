@@ -135,6 +135,15 @@ class AgentResponse:
             return copy.deepcopy(self._context[index])
         return copy.deepcopy(self._context)
 
+    def get_last_context(self) -> typing.Dict[str, typing.Any]:
+        """
+        Returns a deep copy of the last message in the context.
+
+        Returns:
+            Dict[str, Any]: A deep copy of the last context entry.
+        """
+        return self.get_context(index=-1)        
+
     @property
     def response(self) -> typing.Optional[str]:
         """

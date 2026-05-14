@@ -27,6 +27,26 @@ pip install org.slashlib.py.agent
 ```
 
 ---
+
+### Configuration
+
+The framework can automatically ingest default settings from a pyproject.json file located in your project root. This allows you to manage model parameters without changing your code.
+
+**pyproject.json:**
+```json
+{
+  "adapter": {
+    "ollama": {
+      "model": "gemma4",
+      "think": true,
+      "timeout": 600.0
+    }
+  }
+}
+```
+
+---
+
 ## Quick Start
 
 Setting up an agent with a tool and the Ollama adapter is straightforward:
@@ -54,7 +74,7 @@ async def main():
     
     # 4. Retrieve result
     response = await task
-    print(f"Response: {response.get_last_content()}")
+    print(f"Response: {response.get_last_context()}")
 
 if __name__ == "__main__":
     asyncio.run(main())

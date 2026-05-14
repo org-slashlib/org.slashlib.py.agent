@@ -3,9 +3,9 @@
 
 A highly decoupled, asynchronous framework for building AI agents in Python.
 
-[![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg)](https://pypi.org/project/org.slashlib.py.agent/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg)](https://pypi.org/project/org.slashlib.py.agent/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+---
 ## Core Concept
 
 This package provides a robust infrastructure to connect AI models (Inference Engines) with functional tools. The focus lies on **Provider Agnosticism**: The agent does not need to know whether it is communicating with Ollama, OpenAI, or a local model—it uses standardized adapters to ensure seamless integration.
@@ -73,7 +73,7 @@ The following community plugins are pre-configured in the vault to enhance the d
 * **[Hide Folders](https://github.com/JonasDoesThings/obsidian-hide-folders)**: Keeps the structure clean by hiding internal directories.
 * **[Iconic](https://github.com/gfxholo/iconic)** & **[Icons](https://github.com/visini/obsidian-icons-plugin)**: Improved visual navigation.
 
-[More docs](docs)
+[More docs](docs/docs.md)
 
 ---
 ## License

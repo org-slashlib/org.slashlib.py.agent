@@ -14,6 +14,14 @@ All notable changes to this project will be documented in this file.
 
 - No Fixes yet
 
+---
+## [0.1.1] - 2026-05-14
+
+### FIXED
+
+-  Missing dependency `org.slashlib.py.configloader` in `pyproject.toml`
+
+---
 ## [0.1.0] - 2026-05-12
 
 Initial release

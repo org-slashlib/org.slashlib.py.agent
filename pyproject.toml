@@ -4,8 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "org.slashlib.py.agent"
-version = "0.1.0"
+version = "0.1.1"
+license = "MIT"
 dependencies = [
+  "org.slashlib.py.configloader>=0.1.0"
 ]
 authors = [
   { name="Dirk Brenckmann", email="db.developer@gmx.de" },
@@ -15,7 +17,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 

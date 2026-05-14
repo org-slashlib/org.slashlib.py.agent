@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "org.slashlib.py.agent"
-version = "0.1.1"
+version = "0.1.2"
 license = "MIT"
 dependencies = [
   "org.slashlib.py.configloader>=0.1.0"
@@ -40,6 +40,7 @@ addopts = """
 """
 
 [tool.coverage.run]
+data_file = "docs/reports/coverage/.coverage"
 source = ["src/org/slashlib/py/agent"]
 omit = ["src/org/slashlib/py/agent/__main__.py"]
 

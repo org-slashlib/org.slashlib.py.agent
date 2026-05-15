@@ -53,7 +53,8 @@ Setting up an agent with a tool and the Ollama adapter is straightforward:
 
 ```python
 import asyncio
-from org.slashlib.py.agent import Agent, OllamaInferenceAdapter, tool
+from org.slashlib.py.inference.ollama import OllamaInferenceAdapter
+from org.slashlib.py.agent import Agent, tool
 
 # 1. Define a tool
 @tool(description="Adds two numbers.")

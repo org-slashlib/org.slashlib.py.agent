@@ -24,10 +24,6 @@ from org.slashlib.py.agent.inference_bases import (
     InferenceConfigError,
     InferencePayloadError
 )
-from org.slashlib.py.agent.inference_complements_for_ollama import (
-    OllamaInferenceAdapter,
-    OllamaInferenceResult
-)
 
 __all__ = [
     "Agent",
@@ -38,9 +34,7 @@ __all__ = [
     "InferenceError",
     "InferenceConnectionError",
     "InferenceConfigError",
-    "InferencePayloadError",
-    "OllamaInferenceAdapter",
-    "OllamaInferenceResult"
+    "InferencePayloadError"
 ]
 
 # end of file src/org/slashlib/py/agent/__init__.py

@@ -36,7 +36,7 @@ def test_tool_complex_list_type():
     test_tool = Tool(process_items)
     schema = test_tool.get_schema()
     
-    prop = schema["parameters"]["properties"]["items"]
+    prop = schema["function"]["parameters"]["properties"]["items"]
     assert prop["type"] == "array"
     # Depending on your implementation, check for items type
     if "items" in prop:
@@ -54,9 +54,9 @@ def test_tool_optional_parameter():
 
     test_tool = Tool(greet)
     schema = test_tool.get_schema()
-    
-    assert "name" in schema["parameters"]["properties"]
-    assert "name" not in schema["parameters"].get("required", [])
+
+    assert "name" in schema["function"]["parameters"]["properties"]    
+    assert "name" not in schema["function"]["parameters"].get("required", [])
 
 
 def test_tool_no_docstring_fallback():
@@ -70,14 +70,13 @@ def test_tool_no_docstring_fallback():
     test_tool = Tool(undocumented_func)
     schema = test_tool.get_schema()
     
-    assert "description" in schema
-    assert isinstance(schema["description"], str)
-
+    # Korrektur: Zugriff über ["function"]
+    assert "description" in schema["function"]
+    assert isinstance(schema["function"]["description"], str)
 
 def test_tool_union_type_handling():
     """
     Test how Union types (excluding Optional) are handled.
-    Most LLM schemas struggle with multi-type fields.
     """
     def compute(val: Union[int, float]):
         """Math on union types."""
@@ -86,14 +85,12 @@ def test_tool_union_type_handling():
     test_tool = Tool(compute)
     schema = test_tool.get_schema()
     
-    # Check if your implementation picks the first type or 'number'
-    assert "type" in schema["parameters"]["properties"]["val"]
-
+    # Korrektur: Zugriff über ["function"]["parameters"]
+    assert "type" in schema["function"]["parameters"]["properties"]["val"]
 
 def test_tool_name_override_in_constructor():
     """
-    Verify that the name and description can be explicitly overridden 
-    regardless of the function's metadata.
+    Verify that the name and description can be explicitly overridden.
     """
     def original_name():
         """original doc"""
@@ -102,8 +99,8 @@ def test_tool_name_override_in_constructor():
     test_tool = Tool(original_name, name="forced_name", description="forced doc")
     schema = test_tool.get_schema()
     
-    assert schema["name"] == "forced_name"
-    assert schema["description"] == "forced doc"
-
+    # Korrektur: Zugriff über ["function"]
+    assert schema["function"]["name"] == "forced_name"
+    assert schema["function"]["description"] == "forced doc"
 
 # No __all__ export needed for test files as they are not meant to be imported as modules.

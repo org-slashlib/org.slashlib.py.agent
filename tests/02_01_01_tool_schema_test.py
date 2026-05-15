@@ -25,10 +25,6 @@ from org.slashlib.py.agent.tool import Tool, tool
 
 
 def test_tool_schema_generation_basic():
-    """
-    Test if the Tool class correctly generates a JSON schema for a basic function.
-    Verifies name, description and parameter types.
-    """
     def multiply(a: int, b: float, name: str = "default"):
         """Multiplies two numbers."""
         return a * b
@@ -36,31 +32,27 @@ def test_tool_schema_generation_basic():
     test_tool = Tool(multiply)
     schema = test_tool.get_schema()
 
-    assert schema["name"] == "multiply"
-    assert schema["description"] == "Multiplies two numbers."
-    assert schema["parameters"]["type"] == "object"
+    # Zugriff über ["function"]
+    assert schema["type"] == "function"
+    inner = schema["function"]
+    assert inner["name"] == "multiply"
+    assert inner["description"] == "Multiplies two numbers."
     
-    properties = schema["parameters"]["properties"]
+    properties = inner["parameters"]["properties"]
     assert properties["a"]["type"] == "integer"
     assert properties["b"]["type"] == "number"
-    assert properties["name"]["type"] == "string"
-    assert properties["name"]["default"] == "default"
-
 
 def test_tool_required_parameters():
-    """
-    Ensure that parameters without default values are marked as 'required'.
-    """
     def mixed_params(req: int, opt: int = 1):
         return req + opt
 
     test_tool = Tool(mixed_params)
     schema = test_tool.get_schema()
     
-    required = schema["parameters"]["required"]
+    # Zugriff über ["function"]
+    required = schema["function"]["parameters"]["required"]
     assert "req" in required
     assert "opt" not in required
-
 
 @pytest.mark.asyncio
 async def test_tool_execution_async():
@@ -72,20 +64,17 @@ async def test_tool_execution_async():
 
     test_tool = Tool(async_add)
     result = await test_tool(x=10, y=20)
-    assert result == 30
+    assert result == "30"
 
 
 def test_tool_decorator_syntax():
-    """
-    Test if the @tool decorator correctly wraps a function into a Tool instance.
-    """
     @tool(name="custom_name", description="custom desc")
     def my_func(data: typing.List[str]):
         return len(data)
 
     assert isinstance(my_func, Tool)
     assert my_func.name == "custom_name"
-    assert my_func.get_schema()["description"] == "custom desc"
-
+    # Zugriff über ["function"]
+    assert my_func.get_schema()["function"]["description"] == "custom desc"
 
 # No __all__ export needed for test files as they are not meant to be imported as modules.

@@ -41,40 +41,42 @@ def test_tool_skips_explicit_self_and_cls():
         """Method with explicit cls."""
         return data
 
-    # Test 'self' exclusion
+    # --- Test 'self' exclusion ---
     tool_self = Tool(fake_instance_method)
     schema_self = tool_self.get_schema()
-    props_self = schema_self["parameters"]["properties"]
+    
+    # Navigiere in den ["function"] Baum
+    props_self = schema_self["function"]["parameters"]["properties"]
     
     assert "data" in props_self
-    assert "self" not in props_self  # This MUST trigger the 'continue'
-    assert "self" not in schema_self["parameters"].get("required", [])
+    assert "self" not in props_self  # Verifiziert den 'continue' Block für 'self'
+    assert "self" not in schema_self["function"]["parameters"].get("required", [])
 
-    # Test 'cls' exclusion
+    # --- Test 'cls' exclusion ---
     tool_cls = Tool(fake_class_method)
     schema_cls = tool_cls.get_schema()
-    props_cls = schema_cls["parameters"]["properties"]
+    
+    # Navigiere in den ["function"] Baum
+    props_cls = schema_cls["function"]["parameters"]["properties"]
     
     assert "data" in props_cls
-    assert "cls" not in props_cls   # This MUST trigger the 'continue'
-    assert "cls" not in schema_cls["parameters"].get("required", [])
+    assert "cls" not in props_cls   # Verifiziert den 'continue' Block für 'cls'
+    assert "cls" not in schema_cls["function"]["parameters"].get("required", [])
 
 
 def test_tool_unbound_method_from_class():
     """
-    Another way to trigger the branch: Passing the method directly from the class
-    without an instance (unbound).
+    Passing the method directly from the class without an instance.
     """
     class Target:
         def method(self, arg1: int):
             pass
 
-    # Passing Target.method includes 'self' in the signature
     test_tool = Tool(Target.method)
     schema = test_tool.get_schema()
-    
-    assert "arg1" in schema["parameters"]["properties"]
-    assert "self" not in schema["parameters"]["properties"]
 
+    # Korrektur: Navigiere in den ["function"] Baum
+    assert "arg1" in schema["function"]["parameters"]["properties"]
+    assert "self" not in schema["function"]["parameters"]["properties"]
 
 # No __all__ export needed for test files as they are not meant to be imported as modules.

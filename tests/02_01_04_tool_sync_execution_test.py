@@ -42,8 +42,9 @@ async def test_tool_call_sync_function():
     # We must await it. This will enter the 'return self._func' branch.
     result = await test_tool(a=5, b=10)
 
-    assert result == 50
-    assert result != 0
+    assert result == "50"
+    assert result != "0"
+    assert result != None
 
 
 # No __all__ export needed for test files as they are not meant to be imported as modules.

@@ -18,6 +18,12 @@
 import functools
 import inspect
 import typing
+import json
+import logging
+import datetime
+import uuid
+import pathlib
+from decimal import Decimal
 
 # Third party imports
 
@@ -82,17 +88,18 @@ class Tool:
         """
         Generates a JSON schema based on the function's signature and annotations.
         
-        The schema follows the standard expected by modern LLMs for tool calling.
+        The schema follows the strict 'type: function' structure expected by 
+        modern LLMs for tool calling.
 
         Returns:
-            dict: A dictionary representing the tool's schema, including name, 
-                description, and parameter definitions.
+            dict: A dictionary representing the tool's schema in the format:
+                  {'type': 'function', 'function': {...}}
         """
         sig = inspect.signature(self._func)
         parameters = {"type": "object", "properties": {}, "required": []}
 
         for param_name, param in sig.parameters.items():
-            # Skip 'self' or 'cls' if decorated inside a class (though unlikely here)
+            # Skip 'self' or 'cls' if decorated inside a class
             if param_name in ("self", "cls"):
                 continue
 
@@ -103,38 +110,97 @@ class Tool:
                 "description": f"Parameter {param_name}"
             }
 
-            # If there's a default value, mention it in the description
+            # If there's a default value, mention it and add the 'default' key
             if param.default is not inspect.Parameter.empty:
                 param_info["default"] = param.default
                 param_info["description"] += f" (defaults to {param.default})"
             else:
+                # Parameters without defaults are mandatory
                 parameters["required"].append(param_name)
 
             parameters["properties"][param_name] = param_info
 
+        # Encapsulate in the required 'function' envelope
         return {
-            "name": self.name,
-            "description": self.description.strip(),
-            "parameters": parameters
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description.strip() if self.description else "No description provided.",
+                "parameters": parameters
+            }
         }
 
-    async def __call__(self, *args, **kwargs):
+    async def __call__(self, *args, **kwargs) -> str:
         """
-        Executes the wrapped function.
-        
-        Supports both synchronous and asynchronous functions transparently.
+        Execute the tool with the provided arguments.
 
-        Args:
-            *args: Positional arguments for the wrapped function.
-            **kwargs: Keyword arguments for the wrapped function.
+        This method wraps the execution of the underlying function, ensures
+        error handling, and guarantees that the return value is a string
+        suitable for LLM context inclusion (e.g., via JSON serialization).
 
         Returns:
-            Any: The result of the function execution.
+            str: The result of the tool execution as a string.
         """
-        if inspect.iscoroutinefunction(self._func):
-            return await self._func(*args, **kwargs)
-        return self._func(*args, **kwargs)
+        try:
+            # Execute the wrapped function (handles both async and sync)
+            if inspect.iscoroutinefunction(self._func):
+                result = await self._func(*args, **kwargs)
+            else:
+                result = self._func(*args, **kwargs)
 
+            # 1. Handle standalone None immediately (returns empty string)
+            if result is None:
+                return ""
+
+            # 2. Handle simple primitives immediately to avoid unnecessary JSON quotes
+            if isinstance(result, (str, int, float, bool)):
+                return str(result)
+
+            # 3. Handle standalone Path immediately (avoids JSON quotes and ensures forward slashes)
+            if isinstance(result, pathlib.Path):
+                return result.as_posix()
+
+            import json
+
+            class ToolEncoder(json.JSONEncoder):
+                """
+                A recursive encoder that handles all special types even when 
+                nested deep inside dicts, lists, or sets.
+                """
+                def default(self, obj):
+                    # Note: We let None pass here so json.dumps converts it to 'null' (standard JSON)
+                    if isinstance(obj, set):
+                        return list(obj)
+                    if isinstance(obj, bytes):
+                        return obj.decode("utf-8", errors="replace")
+                    if isinstance(obj, (datetime.datetime, datetime.date, datetime.time)):
+                        return obj.isoformat()
+                    if isinstance(obj, pathlib.Path):
+                        return obj.as_posix()
+                    if isinstance(obj, (uuid.UUID, Decimal)):
+                        return str(obj)
+                    # For everything else, try standard conversion
+                    try:
+                        return super().default(obj)
+                    except TypeError:
+                        return str(obj)
+
+            # 4. For everything else (containers and special types), use the Encoder.
+            # Containers like {"a": 1} or [1, 2] will be serialized correctly here.
+            res_json = json.dumps(result, ensure_ascii=False, cls=ToolEncoder)
+            
+            # If it's a JSON string literal (like "2026-05-15"), strip the quotes.
+            # Complex structures (starting with { or [) skip this and reach the final return.
+            if res_json.startswith('"') and res_json.endswith('"'):
+                return res_json[1:-1]
+                
+            return res_json
+
+        except Exception as e:
+            # We initialize the logger here to ensure it's available in the exception context
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error executing tool '{self.name}': {e}")
+            raise
 
 def tool(name: str = None, description: str = None):
     """

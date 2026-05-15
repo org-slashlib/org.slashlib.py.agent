@@ -76,6 +76,18 @@ def test_agent_init_raises_value_error_empty_tools():
         # We use a new identifier to bypass the Multiton cache and trigger __init__
         Agent(identifier="empty-tools-error", tools=[], adapter=mock_adapter)
 
+def test_agent_init_raises_value_error_missing_adapter():
+    """
+    What: Test that __init__ raises ValueError when adapter is None.
+    Why: Targets coverage for line 88 in agent.py. 
+    Assumptions: Bypasses tools check by providing valid tools list.
+    """
+    dummy_tool = Tool(lambda: "test", name="valid_tool")
+    
+    with pytest.raises(ValueError, match="An InferenceAdapter is required."):
+        # Provide valid tools but None for adapter to trigger line 88
+        Agent(identifier="missing-adapter-error", tools=[dummy_tool], adapter=None)
+
 def test_agent_init_initialization_guard():
     """
     What: Verify that the initialization guard prevents overwriting attributes.

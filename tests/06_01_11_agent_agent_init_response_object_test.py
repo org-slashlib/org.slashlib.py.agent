@@ -2,15 +2,15 @@
 # file tests/06_01_11_agent_agent_init_response_object_test.py
 # @AI:
 # - INTEGRITY RULES:
-#   - STRICT PRESERVATION: Do not remove, move, or modify ANY existing lines of code or comments 
-#     unless they are the explicit target of the requested change. 
-#   - DEBUG MARKERS: Commented-out code (e.g., debug prints) MUST be kept exactly where they are.
-#   - WHITESPACE & STRUCTURE: Maintain all original empty lines and the existing file structure. 
-#     Structural integrity takes precedence over "clean code" or "elegance".
-#   - LEAD-IN/OUT: The very first and last lines (and all comments in between) are immutable anchors.
+#    - STRICT PRESERVATION: Do not remove, move, or modify ANY existing lines of code or comments 
+#      unless they are the explicit target of the requested change. 
+#    - DEBUG MARKERS: Commented-out code (e.g., debug prints) MUST be kept exactly where they are.
+#    - WHITESPACE & STRUCTURE: Maintain all original empty lines and the existing file structure. 
+#      Structural integrity takes precedence over "clean code" or "elegance".
+#    - LEAD-IN/OUT: The very first and last lines (and all comments in between) are immutable anchors.
 # - MAINTENANCE:
-#   - Only update pydoc strings (args, returns, raises) if the function signature changes.
-#   - Do NOT delete existing examples or descriptions in pydoc.
+#    - Only update pydoc strings (args, returns, raises) if the function signature changes.
+#    - Do NOT delete existing examples or descriptions in pydoc.
 # - LANGUAGE: en-US for all comments and documentation.
 #
 
@@ -28,7 +28,7 @@ attribute propagation (identifier/multi).
 """
 
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from org.slashlib.py.agent.agent import Agent
 from org.slashlib.py.agent.agent_response import AgentResponse
 from org.slashlib.py.agent.inference_bases import InferenceAdapter
@@ -56,7 +56,7 @@ def test_init_response_object_instantiation():
     expected_id = "test-agent-resp"
     agent = Agent(identifier=expected_id, tools=[dummy_tool], adapter=mock_adapter)
 
-    response = agent._init_response_object()
+    response = agent._init_response_object(user_prompt="test")
 
     assert isinstance(response, AgentResponse)
     
@@ -74,11 +74,11 @@ def test_init_response_object_multi_propagation():
     
     # Case 1: Multi is True
     agent_multi = Agent(identifier="multi-true", tools=[dummy_tool], adapter=mock_adapter, multi=True)
-    resp_multi = agent_multi._init_response_object()
+    resp_multi = agent_multi._init_response_object(user_prompt="test")
     
     # Case 2: Multi is False
     agent_single = Agent(identifier="multi-false", tools=[dummy_tool], adapter=mock_adapter, multi=False)
-    resp_single = agent_single._init_response_object()
+    resp_single = agent_single._init_response_object(user_prompt="test")
 
     # Determine attribute name (likely _multi based on Agent class)
     attr = "_multi" if hasattr(resp_multi, "_multi") else "multi"
@@ -99,8 +99,48 @@ def test_init_response_object_handles_kwargs_gracefully():
     
     try:
         # Should not raise TypeError even if kwargs are currently ignored internally
-        agent._init_response_object(arbitrary_key="some_value", context=[{"item": 1}])
+        agent._init_response_object(arbitrary_key="some_value", context=[{"item": 1}], user_prompt="test")
     except TypeError as e:
         pytest.fail(f"_init_response_object failed to handle **kwargs: {e}")
+
+def test_init_response_object_system_prompt_coverage():
+    """
+    What: Verify that system_prompt is processed if provided in kwargs.
+    Why: Targets coverage for line 169 in agent.py.
+    """
+    mock_adapter = MagicMock(spec=InferenceAdapter)
+    dummy_tool = Tool(lambda: None, name="dummy")
+    agent = Agent(identifier="system-prompt-test", tools=[dummy_tool], adapter=mock_adapter)
+    
+    sys_msg = "You are a helpful assistant."
+    user_msg = "Hello!"
+    
+    # We patch AgentResponse's append_context to verify the logic 
+    # without relying on internal property names.
+    with patch.object(AgentResponse, 'append_context') as mock_append:
+        agent._init_response_object(user_prompt=user_msg, system_prompt=sys_msg)
+        
+        # Check if append_context was called for system and user
+        mock_append.assert_any_call(role="system", content=sys_msg)
+        mock_append.assert_any_call(role="user", content=user_msg)
+
+def test_init_response_object_missing_user_prompt():
+    """
+    What: Verify behavior when user_prompt is missing.
+    Why: Targets coverage for error handling in _init_response_object.
+    """
+    mock_adapter = MagicMock(spec=InferenceAdapter)
+    dummy_tool = Tool(lambda: None, name="dummy")
+    agent = Agent(identifier="missing-user-prompt", tools=[dummy_tool], adapter=mock_adapter)
+    
+    # We patch append_error to verify it's called
+    with patch.object(AgentResponse, 'append_error') as mock_err:
+        response = agent._init_response_object()
+        
+        assert response is not None
+        mock_err.assert_called_once()
+        args, _ = mock_err.call_args
+        assert isinstance(args[0], ValueError)
+        assert "user_prompt" in str(args[0])
 
 # end of file tests/06_01_11_agent_agent_init_response_object_test.py

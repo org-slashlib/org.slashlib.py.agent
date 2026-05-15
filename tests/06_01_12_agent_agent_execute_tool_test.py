@@ -28,10 +28,20 @@ strings and raises ValueError if the tool is not found.
 
 import pytest
 import asyncio
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from org.slashlib.py.agent.agent import Agent
 from org.slashlib.py.agent.inference_bases import InferenceAdapter
 from org.slashlib.py.agent.tool import Tool
+
+@pytest.fixture
+def dummy_agent():
+    """
+    Fixture to provide an Agent instance for coverage tests.
+    Ensures a non-empty tool list to satisfy __init__ validation.
+    """
+    mock_adapter = MagicMock(spec=InferenceAdapter)
+    init_tool = Tool(lambda: "init", name="init_tool")
+    return Agent(identifier="exec-tool-cleanup", tools=[init_tool], adapter=mock_adapter)
 
 def test_existence_and_type():
     """
@@ -113,4 +123,27 @@ async def test_execute_tool_with_async_tool():
     result = await agent._execute_tool(name="async_tool", arguments={"val": "data"})
     assert result == "processed data"
 
-# end of file tests/06_01_12_agent_agent_execute_tool_test.py    
+@pytest.mark.asyncio
+async def test_execute_tool_runtime_error(dummy_agent):
+    """
+    Targets 169: Catching exceptions during actual tool call.
+    """
+    def crash(): raise RuntimeError("Crash")
+    crash_tool = Tool(crash, name="crash_tool")
+    
+    # FIX: self._tools is a list of objects, not a dict.
+    with patch.object(dummy_agent, "_tools", [crash_tool]):
+        with pytest.raises(RuntimeError, match="Crash"):
+            await dummy_agent._execute_tool(name="crash_tool", arguments={})
+
+@pytest.mark.asyncio
+async def test_execute_tool_not_found_internal(dummy_agent):
+    """
+    Targets 105-107: Covers additional internal tool lookup failure paths.
+    """
+    # FIX: Ensure we use a list for the mock
+    with patch.object(dummy_agent, "_tools", []):
+        with pytest.raises(ValueError, match="not found"):
+            await dummy_agent._execute_tool(name="ghost_tool", arguments={})
+
+# end of file tests/06_01_12_agent_agent_execute_tool_test.py

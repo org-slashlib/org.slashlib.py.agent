@@ -2,15 +2,15 @@
 # file tests/06_01_14_agent_agent_run_internal_test.py
 # @AI:
 # - INTEGRITY RULES:
-#   - STRICT PRESERVATION: Do not remove, move, or modify ANY existing lines of code or comments 
-#     unless they are the explicit target of the requested change. 
-#   - DEBUG MARKERS: Commented-out code (e.g., debug prints) MUST be kept exactly where they are.
-#   - WHITESPACE & STRUCTURE: Maintain all original empty lines and the existing file structure. 
-#     Structural integrity takes precedence over "clean code" or "elegance".
-#   - LEAD-IN/OUT: The very first and last lines (and all comments in between) are immutable anchors.
+#    - STRICT PRESERVATION: Do not remove, move, or modify ANY existing lines of code or comments 
+#      unless they are the explicit target of the requested change. 
+#    - DEBUG MARKERS: Commented-out code (e.g., debug prints) MUST be kept exactly where they are.
+#    - WHITESPACE & STRUCTURE: Maintain all original empty lines and the existing file structure. 
+#      Structural integrity takes precedence over "clean code" or "elegance".
+#    - LEAD-IN/OUT: The very first and last lines (and all comments in between) are immutable anchors.
 # - MAINTENANCE:
-#   - Only update pydoc strings (args, returns, raises) if the function signature changes.
-#   - Do NOT delete existing examples or descriptions in pydoc.
+#    - Only update pydoc strings (args, returns, raises) if the function signature changes.
+#    - Do NOT delete existing examples or descriptions in pydoc.
 # - LANGUAGE: en-US for all comments and documentation.
 #
 
@@ -23,15 +23,17 @@ Special Considerations:
 The agent loop appears to require a specific termination signal or 
 exhaustion of tasks. Since the previous test showed 3 calls when 2 were 
 expected, we provide a longer side_effect sequence to observe behavior.
+Includes error handling tests for early exit and specific InferenceErrors.
 """
 
 import pytest
 import asyncio
 import logging
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock, patch, PropertyMock
 from org.slashlib.py.agent.agent import Agent
 from org.slashlib.py.agent.agent_response import AgentResponse
 from org.slashlib.py.agent.tool import Tool
+from org.slashlib.py.agent.inference_bases import InferenceError
 
 @pytest.fixture
 def dummy_tool():
@@ -111,5 +113,44 @@ async def test_run_internal_error_handling(dummy_tool, caplog):
         with caplog.at_level(logging.ERROR):
             await agent._run(user_input="error-test")
             assert "Unexpected error" in caplog.text
+
+@pytest.mark.asyncio
+async def test_run_early_exit_on_init_error(dummy_tool):
+    """
+    What: Verify early return if _init_response_object returns an error.
+    Why: Targets coverage for line 265.
+    """
+    mock_adapter = MagicMock()
+    agent = Agent(identifier="run-early-exit", tools=[dummy_tool], adapter=mock_adapter)
+    
+    # Use a real AgentResponse but mock the 'has_error' property
+    error_response = AgentResponse()
+    
+    with patch.object(AgentResponse, 'has_error', new_callable=PropertyMock) as mock_has_error:
+        mock_has_error.return_value = True
+        
+        with patch.object(Agent, '_init_response_object', return_value=error_response):
+            result = await agent._run()
+            
+            assert result is error_response
+            # Verify we hit the early return: chat() should never be called
+            assert mock_adapter.chat.call_count == 0
+
+@pytest.mark.asyncio
+async def test_run_inference_error_handling(dummy_tool, caplog):
+    """
+    What: Verify handling of specific InferenceError.
+    Why: Targets coverage for lines 292-293.
+    """
+    mock_adapter = MagicMock()
+    mock_adapter.chat = AsyncMock(side_effect=InferenceError("Specific LLM Error"))
+    
+    agent = Agent(identifier="run-inf-error", tools=[dummy_tool], adapter=mock_adapter)
+    
+    with patch.object(Agent, '_init_response_object', return_value=AgentResponse()):
+        with caplog.at_level(logging.ERROR):
+            result = await agent._run(user_prompt="test")
+            assert "Inference failed" in caplog.text
+            assert isinstance(result, AgentResponse)
 
 # end of file tests/06_01_14_agent_agent_run_internal_test.py

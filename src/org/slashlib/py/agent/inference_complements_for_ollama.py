@@ -151,7 +151,7 @@ class OllamaInferenceAdapter(inference.InferenceAdapter):
         think = kwargs.get("think", config.resolve("adapter.ollama.think"))
 
         try:
-            self.log.debug(f"Ollama request: model={target_model}, timeout={timeout}, think={think}")
+            self.log.debug(f"Ollama request: timeout={timeout}, model={target_model}, messages={messages}, tools={tools}, think={think}")
             
             client = ollama.AsyncClient(timeout=timeout)
             response = await client.chat(
@@ -161,6 +161,8 @@ class OllamaInferenceAdapter(inference.InferenceAdapter):
                 think=think
             )
 
+            self.log.debug(f"Ollama response: {response}")
+            
             message = response.get("message")
             if not message:
                 raise inference.InferencePayloadError(f"Ollama API returned an empty response for model '{target_model}'.")
@@ -168,10 +170,10 @@ class OllamaInferenceAdapter(inference.InferenceAdapter):
             return OllamaInferenceResult(message)
 
         except (ollama.ResponseError) as e:
-            self.log.error(f"Ollama logical/config error: {e}")
+            self.log.error(f"Ollama logical/config error: {e}", exc_info=True)
             raise inference.InferenceConfigError(f"Ollama model or config invalid: {str(e)}")
         except (ollama.RequestError) as e:
-            self.log.error(f"Ollama communication error: {e}")
+            self.log.error(f"Ollama communication error: {e}", exc_info=True)
             raise inference.InferenceConnectionError(f"Failed to connect to Ollama: {str(e)}")
         except inference.InferenceError:
             # Re-raise internal inference errors to prevent them from being caught by the general Exception block

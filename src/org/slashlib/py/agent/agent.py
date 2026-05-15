@@ -211,22 +211,39 @@ class Agent:
         for call in tool_calls:
             tool_name = call.get("function", {}).get("name")
             tool_args = call.get("function", {}).get("arguments")
+            tool_call_id = call.get("id")
+            
+            # Basis-Argumente für den Kontext vorbereiten
+            context_kwargs = {
+                "role": "tool",
+                "name": tool_name
+            }
+
+            # tool_call_id nur anfügen, wenn sie vorhanden und nicht leer ist
+            if tool_call_id:
+                context_kwargs["tool_call_id"] = tool_call_id
             
             try:
                 result = await self._execute_tool(tool_name, tool_args)
-                response_obj.append_context(
-                    role="tool",
-                    content=result,
-                    name=tool_name
-                )
-            except Exception as tool_err:
+                context_kwargs["content"] = result
+                response_obj.append_context(**context_kwargs)
+            except BaseException as tool_err:
+                # Wir fangen ALLES ab (BaseException), damit has_tool_error garantiert True wird
                 self.log.error(f"Tool execution failed: {tool_err}")
+                
+                # Das Flag im Response-Objekt setzen
                 response_obj.append_tool_error(tool_err)
-                response_obj.append_context(
-                    role="tool",
-                    content=f"Error: {str(tool_err)}",
-                    name=tool_name
-                )
+                
+                # Den Fehler für das LLM in den Kontext schreiben
+                context_kwargs["content"] = f"Error: {str(tool_err)}"
+                response_obj.append_context(**context_kwargs)
+
+                # Falls es ein KeyboardInterrupt oder SystemExit war, sollten wir 
+                # es nach der Protokollierung ggf. trotzdem weiterreichen, 
+                # aber für den Agent-Flow ist es erst einmal im Response-Objekt sicher.
+                if isinstance(tool_err, (KeyboardInterrupt, SystemExit)):
+                    raise
+                    
         return True
 
     async def _run(self, **kwargs) -> response.AgentResponse:

@@ -89,7 +89,22 @@ class Tool:
         Generates a JSON schema based on the function's signature and annotations.
         
         The schema follows the strict 'type: function' structure expected by 
-        modern LLMs for tool calling.
+        modern LLMs for tool calling:
+        
+        {
+          "type": "function",
+          "function": {
+            "name": "get_temperature",
+            "description": "Get the current temperature for a city",
+            "parameters": {
+              "type": "object",
+              "required": ["city"],
+              "properties": {
+                "city": {"type": "string", "description": "The name of the city"}
+              }
+            }
+          }
+        }
 
         Returns:
             dict: A dictionary representing the tool's schema in the format:

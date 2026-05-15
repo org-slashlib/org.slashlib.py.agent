@@ -52,8 +52,7 @@ def test_import_internal_modules():
         "org.slashlib.py.agent.agent",
         "org.slashlib.py.agent.tool",
         "org.slashlib.py.agent.agent_response",
-        "org.slashlib.py.agent.inference_bases",
-        "org.slashlib.py.agent.inference_complements_for_ollama"
+        "org.slashlib.py.agent.inference_bases"
     ]
     for module_name in internal_modules:
         try:

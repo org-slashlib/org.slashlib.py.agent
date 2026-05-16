@@ -16,6 +16,7 @@
 
 # Python imports
 import asyncio
+import importlib.metadata
 import logging
 import pathlib
 import typing
@@ -40,6 +41,61 @@ class Agent:
     This class orchestrates the interaction between an inference adapter and a set of tools.
     """
 
+    @classmethod
+    def from_plugin(cls, identifier: str, tools: typing.List[tool.Tool], 
+                    plugin_name: str, adapter_kwargs: dict = None, **agent_kwargs):
+        """
+        Creates an Agent instance by loading an InferenceAdapter from a registered entry point.
+
+        This method uses the Python entry points mechanism to dynamically discover and 
+        instantiate InferenceAdapter implementations registered under the group 
+        'org.slashlib.py.agent.inference'.
+
+        Args:
+            identifier (str): A unique identifier for the agent instance.
+            tools (typing.List[tool.Tool]): A list of Tool objects the agent can use.
+            plugin_name (str): The name of the registered entry point (e.g., 'ollama').
+            adapter_kwargs (dict, optional): Keyword arguments passed to the constructor 
+                of the discovered InferenceAdapter class. Defaults to None.
+            **agent_kwargs: Additional keyword arguments passed to the Agent constructor 
+                (e.g., 'multi').
+
+        Returns:
+            Agent: An initialized instance of the Agent class with the loaded adapter.
+
+        Raises:
+            ValueError: If no entry point with the name `plugin_name` is found in the 
+                group 'org.slashlib.py.agent.inference'.
+            TypeError: If the loaded entry point does not result in a valid 
+                InferenceAdapter.
+        """
+        eps = importlib.metadata.entry_points(group='org.slashlib.py.agent.inference')
+        entry = next((e for e in eps if e.name == plugin_name), None)
+        
+        if not entry:
+            raise ValueError(f"Plugin '{plugin_name}' not found in group 'org.slashlib.py.agent.inference'")
+
+        # Lädt die Adapter-Klasse (z.B. OllamaInferenceAdapter)
+        adapter_class = entry.load()
+        
+        # Instanziiert den Adapter mit optionalen Parametern
+        adapter_instance = adapter_class(**(adapter_kwargs or {}))
+        
+        # Gibt eine neue Agent-Instanz zurück
+        return cls(identifier=identifier, tools=tools, adapter=adapter_instance, **agent_kwargs)
+
+    @classmethod
+    def list_plugins(cls) -> typing.List[str]:
+        """
+        Returns a list of all registered inference plugin names.
+        
+        Returns:
+            typing.List[str]: A list of names (e.g., ['ollama', 'openai']) 
+                              found under 'org.slashlib.py.agent.inference'.
+        """
+        eps = importlib.metadata.entry_points(group='org.slashlib.py.agent.inference')
+        return [entry.name for entry in eps]        
+        
     def __new__(cls, identifier: str, tools: typing.List[tool.Tool], adapter: inference.InferenceAdapter, multi: bool = True):
         """
         Create a new instance or return an existing one based on the identifier.

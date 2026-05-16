@@ -7,6 +7,7 @@
   "attachmentFolderNames": [
     "assets",
     "reports",
+    "dist",
     "downloads",
     "envs",
     "src",

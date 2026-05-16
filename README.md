@@ -3,7 +3,9 @@
 
 A highly decoupled, asynchronous framework for building AI agents in Python.
 
-[![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg)](https://pypi.org/project/org.slashlib.py.agent/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue)](https://pypi.org/project/org.slashlib.py.agent/) 
+[![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue)](https://test.pypi.org/project/org.slashlib.py.agent/) 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ---
 ## Core Concept
@@ -35,11 +37,9 @@ The framework can automatically ingest default settings from a pyproject.json fi
 **pyproject.json:**
 ```json
 {
-  "adapter": {
-    "ollama": {
-      "model": "gemma4",
-      "think": true,
-      "timeout": 600.0
+  "plugins": {
+    "my-inference-adapter": {
+      "default-setting": "foo"
     }
   }
 }
@@ -79,6 +79,26 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+Using the plugin mechanism:
+
+```python
+from org.slashlib.py.agent import Agent, tool
+
+# Listing available plugins
+plugins = Agent.list_plugins()
+print(f"Verfügbare Adapter: {plugins}")
+# Output: Verfügbare Adapter: ['my-ollama-plugin']
+
+# Setting up an Agent using a plugin
+my_agent = Agent.from_plugin(
+    identifier="my-ollama-agent",
+    tools=[...],
+    plugin_name="my-ollama-plugin",
+    adapter_kwargs={"base_url": "http://localhost:11434"} # In case the plugin requires this parameter during __init__
+)
+
 ```
 
 ---

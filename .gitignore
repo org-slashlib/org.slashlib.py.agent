@@ -9,6 +9,15 @@
 .coverage
 *.egg-info/
 
+# --- Python & Testing
+docs/reports/
+.coverage
+
+# --- Python & Build
+dist/
+*.whl
+*.tar.gz
+
 # Falls doch mal irgendwo lokal __pycache__ oder .pyc Dateien entstehen:
 **/__pycache__/
 *.py[cod]
@@ -38,7 +47,6 @@ reports/
 .DS_Store
 Thumbs.db
 desktop.ini
-DO NOT RENAME OR MOVE.md
 
 # --- Obsidian Spezifisches ---
 # Wir behalten die Notizen in docs/, aber ignorieren die Workspace-Settings von Obsidian

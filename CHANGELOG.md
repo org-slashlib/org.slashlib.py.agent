@@ -15,6 +15,22 @@ All notable changes to this project will be documented in this file.
 - No Fixes yet
 
 ---
+## [0.1.5] - 2026-05-16
+
+### Added
+
+- Plugin mechanism added to pyproject.toml:
+  [project.entry-points."org.slashlib.py.agent.inference"]
+  my-inference-adapter = "my.adapter:AIInferenceAdapter"
+
+- Added Agent.list_plugins()
+
+- Added Agent.from_plugin(identifier: str, tools: typing.List[tool.Tool], plugin_name: str, adapter_kwargs: dict = None, **agent_kwargs):
+
+## [0.1.4] - 2026-05-15
+
+Quickfix: ollama inference adapter removed. See `pip install org.slashlib.py.inference.ollama`
+
 ## [0.1.3] - 2026-05-15
 
 ### Fixed

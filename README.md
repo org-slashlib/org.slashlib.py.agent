@@ -4,7 +4,7 @@
 A highly decoupled, asynchronous framework for building AI agents in Python.
 
 [![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue)](https://pypi.org/project/org.slashlib.py.agent/) 
-[![PyPI-Test version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue)](https://test.pypi.org/project/org.slashlib.py.agent/) 
+[![PyPI-Test version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue&server=https%3A%2F%2Ftest.pypi.org)](https://test.pypi.org/project/org.slashlib.py.agent/) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ---

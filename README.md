@@ -4,7 +4,7 @@
 A highly decoupled, asynchronous framework for building AI agents in Python.
 
 [![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue)](https://pypi.org/project/org.slashlib.py.agent/) 
-[![PyPI-Test version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue&server=https%3A%2F%2Ftest.pypi.org)](https://test.pypi.org/project/org.slashlib.py.agent/) 
+[![PyPI-Test version](https://img.shields.io/badge/pypitest-latest-blue)](https://test.pypi.org/project/org.slashlib.py.agent/) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -18,6 +18,7 @@ This package provides a robust infrastructure to connect AI models (Inference En
 - **Automatic Tool Schemas**: Automatically transforms Python functions into JSON schemas for LLMs via decorators.
 - **Multiton Pattern**: Ensures unique agent instances by identifier, preventing redundant resource allocation.
 - **Robust Exception Hierarchy**: Clearly separates connection, configuration, and tool execution errors.
+- **Plugin System:** Discover and load inference adapters dynamically via Python entry points.
 
 ---
 ## Installation
@@ -81,22 +82,23 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-Using the plugin mechanism:
+### Plugin Discovery
+
+The framework supports dynamic loading of inference adapters. To use an external adapter (e.g., for Ollama), ensure the plugin package is installed and use the factory method:
 
 ```python
-from org.slashlib.py.agent import Agent, tool
+from org.slashlib.py.agent import Agent
 
-# Listing available plugins
-plugins = Agent.list_plugins()
-print(f"Verfügbare Adapter: {plugins}")
-# Output: Verfügbare Adapter: ['my-ollama-plugin']
+# List all available inference plugins
+available = Agent.list_plugins()
+print(f"Available adapters: {available}")
 
-# Setting up an Agent using a plugin
+# Create agent from a plugin (e.g., 'ollama')
 my_agent = Agent.from_plugin(
-    identifier="my-ollama-agent",
-    tools=[...],
-    plugin_name="my-ollama-plugin",
-    adapter_kwargs={"base_url": "http://localhost:11434"} # In case the plugin requires this parameter during __init__
+    identifier="my-agent",
+    tools=[my_tool],
+    plugin_name="ollama",
+    adapter_kwargs={"base_url": "http://localhost:11434"}
 )
 
 ```

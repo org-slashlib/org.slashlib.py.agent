@@ -3,9 +3,7 @@
 
 A highly decoupled, asynchronous framework for building AI agents in Python.
 
-[![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue)](https://pypi.org/project/org.slashlib.py.agent/) 
-[![PyPI-Test version](https://img.shields.io/badge/pypitest-latest-blue)](https://test.pypi.org/project/org.slashlib.py.agent/) 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://img.shields.io/pypi/v/org.slashlib.py.agent.svg?color=blue)](https://pypi.org/project/org.slashlib.py.agent/)  [![PyPI-Test version](https://img.shields.io/badge/pypitest-latest-blue)](https://test.pypi.org/project/org.slashlib.py.agent/)  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ---
 ## Core Concept
@@ -30,7 +28,6 @@ pip install org.slashlib.py.agent
 ```
 
 ---
-
 ### Configuration
 
 The framework can automatically ingest default settings from a pyproject.json file located in your project root. This allows you to manage model parameters without changing your code.
@@ -38,6 +35,15 @@ The framework can automatically ingest default settings from a pyproject.json fi
 **pyproject.json:**
 ```json
 {
+  "name": "My App",
+  "version": "0.0.1",
+  "paths": {
+    "ROOT":   "{ROOT}",
+    "assets": "{ROOT}/assets"
+  },
+  "assets": {
+    "logging": "{path.assets}/logging.json"
+  },
   "plugins": {
     "my-inference-adapter": {
       "default-setting": "foo"
@@ -47,7 +53,6 @@ The framework can automatically ingest default settings from a pyproject.json fi
 ```
 
 ---
-
 ## Quick Start
 
 Setting up an agent with a tool and the Ollama adapter is straightforward:
@@ -71,37 +76,185 @@ async def main():
         adapter=adapter
     )
 
-    # 3. Start task (non-blocking)
-    task = my_agent.run(user_prompt="What is 123 + 456?")
-    
-    # 4. Retrieve result
-    response = await task
+    # 3. Start task and retrieve result
+    response = await my_agent.run(user_prompt="What is 123 + 456?")
     print(f"Response: {response.get_last_context()}")
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### Plugin Discovery
+---
+### The `@tool` Decorator
 
-The framework supports dynamic loading of inference adapters. To use an external adapter (e.g., for Ollama), ensure the plugin package is installed and use the factory method:
+The `@tool` decorator is the bridge between standard Python functions and AI logic. It transforms a function into an instance of the `Tool` class. This class automatically generates the metadata and JSON schemas required by Large Language Models (LLMs) like Gemma or Llama to understand how to interact with your code.
+
+#### Key Features
+* **Schema Generation**: Automatically extracts the tool name, description (from docstrings), and parameter types (from type hints).
+* **Execution Wrapper**: Handles both synchronous and asynchronous functions, ensuring results are formatted as strings or JSON suitable for LLM context.
+* **Type Mapping**: Maps Python types (int, str, list, etc.) to their corresponding JSON schema types.
+
+#### Critical Usage Rules
+1. **Always Use Parentheses**: The decorator must be called with parentheses: `@tool()`. This ensures the function is wrapped into a `Tool` instance rather than remaining a raw function.
+2. **Type Hints are Mandatory**: Use Python type hints (e.g., `a: int`, `names: list`). These are used to build the "parameters" section of the JSON schema.
+3. **Docstrings Matter**: The function's docstring is used as the tool's description. Be precise, as this is the "manual" the AI reads to decide when to use the tool.
+
+#### Example: A Mathematical Tool
+
+```python
+from org.slashlib.py.agent import tool
+
+@tool()
+def add_numbers(a: int, b: int) -> int:
+    """
+    Adds two integers together and returns the sum.
+    
+    Args:
+        a (int): The first number.
+        b (int): The second number.
+        
+    Returns:
+        int: The sum of a and b.
+    """
+    return a + b
+
+# The function 'add_numbers' is now a Tool object and can be 
+# passed directly to an Agent:
+# my_agent = Agent(..., tools=[add_numbers])
+```
+
+#### Custom Configuration
+
+You can explicitly override the tool's name or description within the decorator if the function name or docstring isn't descriptive enough for the AI:
+
+```python
+@tool(name="global_calculator", description="Use this for any addition tasks.")
+def add(a: int, b: int):
+    return a + b
+```
+
+---
+### Async Execution
+
+The framework is built on Python's `asyncio`. The `Agent.run` method is an asynchronous coroutine. This allows your application to remain responsive or handle multiple agents concurrently.
+
+#### Correct Async Flow
+
+```python
+import asyncio
+from org.slashlib.py.agent import Agent
+
+async def main():
+    # 1. Initialize Agent (via plugin or direct)
+    my_agent = Agent.from_plugin(
+        identifier="MathExpert",
+        tools=[add_numbers],
+        plugin_name="ollama-inference-adapter"
+    )
+
+    # 2. Execute run (awaits the completion of the inference cycle)
+    # The method returns an AgentResponse object directly.
+    response = await my_agent.run(
+        user_prompt="What is 123 + 456?",
+        model="gemma4"
+    )
+    
+    # 3. Handle the result
+    if not response.has_error:
+        print(f"Response: {response.response}")
+    else:
+        response.raise_errors()
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+```
+
+---
+### Understanding `AgentResponse`
+
+The `Agent.run()` method does not return a simple string, but an `AgentResponse` object. This container manages the execution results, the conversation history (context), and any errors that may have occurred.
+
+#### Key Properties & Methods
+
+* **`.response`**: Returns the final text response from the assistant. Use this to get the AI's answer.
+* **`.has_error`**: A boolean flag indicating if a fatal process error (e.g., connection issues, missing models) occurred.
+* **`.raise_errors()`**: A helper method that raises the first recorded process error as an exception. Useful for debugging failed runs.
+* **`.context_size`**: Returns the number of messages exchanged in the current run.
+* **`.get_context()`**: Returns the full conversation history (messages, tool calls, and results).
+
+#### Example: Handling the Response
+
+```python
+response = await my_agent.run(user_prompt="Calculate 123 + 456", model="gemma4")
+
+if response.has_error:
+    print(f"An error occurred!")
+    response.raise_errors()
+else:
+    print(f"Assistant says: {response.response}")
+    print(f"Conversation steps: {response.context_size}")
+    
+#### Process Errors vs. Tool Errors
+```
+
+The `AgentResponse` distinguishes between two types of issues to give you fine-grained control over error handling:
+
+* **Process Errors (`.has_error` / `._errors`)**: These are **fatal** errors that prevented the Agent from completing its task (e.g., connection loss to Ollama, model not found, or authentication issues).
+* **Tool Errors (`.has_tool_error` / `.get_tool_errors()`)**: These are **non-fatal** errors that occurred inside a specific tool execution. The Agent might still be able to provide a final response even if one or more tool calls failed.
+
+**Pro-Tip:** If you want your application to be extra robust, always check both:
+
+```python
+response = await my_agent.run(...)
+
+if response.has_error:
+    # Fatal: The agent couldn't finish
+    response.raise_errors()
+
+if response.has_tool_error:
+    # Non-fatal: One or more tools failed, but the agent still replied
+    for err in response.get_tool_errors():
+        print(f"Warning: Tool execution failed: {err}")
+```
+
+---
+### Plugin Discovery & Dynamic Loading
+
+The framework utilizes Python's entry points to support dynamic discovery and loading of inference adapters. This allows you to extend the agent's capabilities with external adapters without modifying the core package.
+
+#### Using `Agent.from_plugin`
+
+To use an external adapter, ensure the corresponding plugin package is installed in your environment. You can then instantiate an agent using the discovery interface:
 
 ```python
 from org.slashlib.py.agent import Agent
 
-# List all available inference plugins
+# 1. List all discovered inference adapter plugins
+# This scans the environment for registered 'org.slashlib.py.inference.adapter' entry points.
 available = Agent.list_plugins()
 print(f"Available adapters: {available}")
 
-# Create agent from a plugin (e.g., 'ollama')
+# 2. Create an agent using a specific plugin
+# In this example, we load the Ollama adapter dynamically.
 my_agent = Agent.from_plugin(
-    identifier="my-agent",
-    tools=[my_tool],
-    plugin_name="ollama",
-    adapter_kwargs={"base_url": "http://localhost:11434"}
+    identifier="my-dynamic-agent",
+    tools=[my_tool],                      # Must be a list of @tool() objects
+    plugin_name="ollama-inference-adapter", # The name registered in entry_points
+    adapter_kwargs={                      # Arguments passed directly to the Adapter __init__
+        "base_url": "http://localhost:11434"
+    },
+    multi=True                            # Optional: Agent-specific keyword arguments
 )
-
 ```
+
+#### Why use Discovery?
+
+- **Decoupling:** The core agent logic remains independent of specific LLM providers (Ollama, OpenAI, etc.).
+
+- **Extensibility:** Simply install a new adapter package, and it becomes immediately available via list_plugins().
+
+- **Flexible Config:** adapter_kwargs allows for provider-specific configuration (like API keys or base URLs) while keeping the Agent initialization clean.
 
 ---
 ## Documentation & Obsidian

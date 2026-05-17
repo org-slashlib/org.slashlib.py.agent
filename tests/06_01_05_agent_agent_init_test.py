@@ -64,17 +64,19 @@ def test_agent_init_valid_parameters():
     # If the class logic uses __file__ of the agent.py, the stem will be 'agent'.
     assert "Agent" in agent.log.name
 
-def test_agent_init_raises_value_error_empty_tools():
+def test_agent_init_must_not_raises_on_empty_tools():
     """
-    What: Test that __init__ raises ValueError when tools list is empty.
-    Why: To verify input validation for the tools parameter as seen in the source logs.
-    Assumptions: The class strictly enforces at least one tool.
+    What: Test that __init__ does not raise a ValueError when the tools list is empty.
+    Why: To verify that an empty tools list is now accepted during initialization.
+    Assumptions: The class allows initializing an agent without any tools.
     """
     mock_adapter = MagicMock(spec=InferenceAdapter)
     
-    with pytest.raises(ValueError, match="The tools list must not be empty."):
-        # We use a new identifier to bypass the Multiton cache and trigger __init__
-        Agent(identifier="empty-tools-error", tools=[], adapter=mock_adapter)
+    # Wenn hier eine Exception geworfen wird, schlägt der Test automatisch fehl.
+    agent = Agent(identifier="empty-tools-allowed", tools=[], adapter=mock_adapter)
+    
+    # Optional: Ein Assert, um zu prüfen, ob die Liste korrekt (und leer) gesetzt wurde.
+    assert agent.tools == []
 
 def test_agent_init_raises_value_error_missing_adapter():
     """

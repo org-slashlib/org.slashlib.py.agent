@@ -140,9 +140,9 @@ def test_from_plugin_multiton_behavior():
         mock_ep.return_value = [mock_entry]
 
         # First creation
-        agent1 = Agent.from_plugin(agent_id, [mock_tool], "multiton_plugin")
+        agent1 = Agent.from_plugin(agent_id, "multiton_plugin", [mock_tool])
         # Second creation with same ID
-        agent2 = Agent.from_plugin(agent_id, [mock_tool], "multiton_plugin")
+        agent2 = Agent.from_plugin(agent_id, "multiton_plugin", [mock_tool])
 
         assert agent1 is agent2
 

@@ -42,8 +42,7 @@ class Agent:
     """
 
     @classmethod
-    def from_plugin(cls, identifier: str, tools: typing.List[tool.Tool], 
-                    plugin_name: str, adapter_kwargs: dict = None, **agent_kwargs):
+    def from_plugin(cls, identifier: str, plugin_name: str, tools: typing.List[tool.Tool] = (), adapter_kwargs: dict = None, **agent_kwargs):
         """
         Creates an Agent instance by loading an InferenceAdapter from a registered entry point.
 
@@ -53,8 +52,8 @@ class Agent:
 
         Args:
             identifier (str): A unique identifier for the agent instance.
-            tools (typing.List[tool.Tool]): A list of Tool objects the agent can use.
             plugin_name (str): The name of the registered entry point (e.g., 'ollama').
+            tools (typing.List[tool.Tool]): A list of Tool objects the agent can use.
             adapter_kwargs (dict, optional): Keyword arguments passed to the constructor 
                 of the discovered InferenceAdapter class. Defaults to None.
             **agent_kwargs: Additional keyword arguments passed to the Agent constructor 
@@ -82,7 +81,7 @@ class Agent:
         adapter_instance = adapter_class(**(adapter_kwargs or {}))
         
         # Gibt eine neue Agent-Instanz zurück
-        return cls(identifier=identifier, tools=tools, adapter=adapter_instance, **agent_kwargs)
+        return cls(identifier=identifier, adapter=adapter_instance, tools=tools, **agent_kwargs)
 
     @classmethod
     def list_plugins(cls) -> typing.List[str]:
@@ -96,14 +95,14 @@ class Agent:
         eps = importlib.metadata.entry_points(group='org.slashlib.py.agent.inference')
         return [entry.name for entry in eps]        
         
-    def __new__(cls, identifier: str, tools: typing.List[tool.Tool], adapter: inference.InferenceAdapter, multi: bool = True):
+    def __new__(cls, identifier: str, adapter: inference.InferenceAdapter, tools: typing.List[tool.Tool] = (), multi: bool = True):
         """
         Create a new instance or return an existing one based on the identifier.
 
         Args:
             identifier (str): A unique identifier for the agent instance.
-            tools (typing.List[tool.Tool]): A list of Tool objects the agent can use.
             adapter (inference.InferenceAdapter): The adapter to use for inference.
+            tools (typing.List[tool.Tool]): A list of Tool objects the agent can use.
             multi (bool): Whether the agent can run multiple tasks simultaneously.
 
         Returns:
@@ -116,14 +115,14 @@ class Agent:
         _instances[identifier] = instance
         return instance
 
-    def __init__(self, identifier: str, tools: typing.List[tool.Tool], adapter: inference.InferenceAdapter, multi: bool = True):
+    def __init__(self, identifier: str, adapter: inference.InferenceAdapter, tools: typing.List[tool.Tool] = (), multi: bool = True):
         """
         Initialize the Agent.
 
         Args:
             identifier (str): A unique identifier for the agent instance.
-            tools (typing.List[tool.Tool]): A list of Tool objects. Must not be empty.
             adapter (inference.InferenceAdapter): The adapter providing the inference capabilities.
+            tools (typing.List[tool.Tool]): A list of Tool objects. Must not be empty.
             multi (bool): If False, the agent allows only one active task at a time. Defaults to True.
 
         Raises:
@@ -136,9 +135,6 @@ class Agent:
         self.log = logging.getLogger(f"org.slashlib.py.agent.{pathlib.Path(__file__).stem}.{self.__class__.__name__}")
         self._identifier = identifier
         self._multi = multi
-
-        if not tools:
-            raise ValueError("The tools list must not be empty.")
         
         if not adapter:
             raise ValueError("An InferenceAdapter is required.")
@@ -325,10 +321,12 @@ class Agent:
             while is_running:
                 self.log.debug(f"Agent {self.identifier} initiating inference call...")
                 
+                tool_schemas = self.get_tool_schemas()
+                
                 # The adapter handles all provider-specific details and config resolution
                 inference_result = await self._adapter.chat(
                     messages=response_obj.get_context(),
-                    tools=self.get_tool_schemas(),
+                    tools=tool_schemas if tool_schemas else None,
                     **kwargs
                 )
 

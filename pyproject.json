@@ -1,6 +1,6 @@
 {
   "name": "Python Agent",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "paths": {
     "root":         "{ROOT}",
     "assets":       "{ROOT}/assets"

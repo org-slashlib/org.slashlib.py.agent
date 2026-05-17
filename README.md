@@ -72,8 +72,8 @@ async def main():
     adapter = OllamaInferenceAdapter()
     my_agent = Agent(
         identifier="MathExpert",
-        tools=[add_numbers],
-        adapter=adapter
+        adapter=adapter,
+        tools=[add_numbers]
     )
 
     # 3. Start task and retrieve result
@@ -195,8 +195,8 @@ async def main():
     # 1. Initialize Agent (via plugin or direct)
     my_agent = Agent.from_plugin(
         identifier="MathExpert",
-        tools=[add_numbers],
-        plugin_name="ollama-inference-adapter"
+        plugin_name="ollama-inference-adapter",
+        tools=[add_numbers]
     )
 
     # 2. Execute run (awaits the completion of the inference cycle)
@@ -286,12 +286,12 @@ print(f"Available adapters: {available}")
 # In this example, we load the Ollama adapter dynamically.
 my_agent = Agent.from_plugin(
     identifier="my-dynamic-agent",
-    tools=[my_tool],                      # Must be a list of @tool() objects
-    plugin_name="ollama-inference-adapter", # The name registered in entry_points
-    adapter_kwargs={                      # Arguments passed directly to the Adapter __init__
+    plugin_name="ollama-inference-adapter",   # The name registered in entry_points
+    tools=[my_tool],                          # Must be a list of @tool() objects
+    adapter_kwargs={                          # Arguments passed directly to the Adapter __init__
         "base_url": "http://localhost:11434"
     },
-    multi=True                            # Optional: Agent-specific keyword arguments
+    multi=True                                # Optional: Agent-specific keyword arguments
 )
 ```
 

@@ -15,6 +15,23 @@ All notable changes to this project will be documented in this file.
 - No Fixes yet
 
 ---
+## [0.1.8] - 2026-05-17
+
+### Changed
+
+- changed parameter order in Agent.__new__, __init__ and  from_plugin
+
+- list of tools now may be empty
+
+---
+## [0.1.7] - 2026-05-17
+
+### Fixed
+
+- fixed decorator @tool
+  parenthesis is no longer required.
+
+---
 ## [0.1.5] - 2026-05-16
 
 ### Added
@@ -27,10 +44,12 @@ All notable changes to this project will be documented in this file.
 
 - Added Agent.from_plugin(identifier: str, tools: typing.List[tool.Tool], plugin_name: str, adapter_kwargs: dict = None, **agent_kwargs):
 
+---
 ## [0.1.4] - 2026-05-15
 
 Quickfix: ollama inference adapter removed. See `pip install org.slashlib.py.inference.ollama`
 
+---
 ## [0.1.3] - 2026-05-15
 
 ### Fixed

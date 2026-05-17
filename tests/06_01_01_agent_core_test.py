@@ -62,11 +62,11 @@ def test_agent_initialization_failures():
     """
     mock_adapter = MagicMock(spec=InferenceAdapter)
     
-    with pytest.raises(ValueError, match="tools list must not be empty"):
-        Agent(identifier="fail-1", tools=[], adapter=mock_adapter)
-        
+    agent_no_fail = Agent(identifier="no-fail", adapter=mock_adapter, tools=[])
+    assert agent_no_fail.identifier == "no-fail"
+    
     with pytest.raises(ValueError, match="InferenceAdapter is required"):
-        Agent(identifier="fail-2", tools=[MagicMock(spec=Tool)], adapter=None)
+        Agent(identifier="fail-2", adapter=None, tools=[MagicMock(spec=Tool)])
 
 
 @pytest.mark.asyncio

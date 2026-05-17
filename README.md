@@ -44,9 +44,14 @@ The framework can automatically ingest default settings from a pyproject.json fi
   "assets": {
     "logging": "{path.assets}/logging.json"
   },
-  "plugins": {
+  "inference": {
     "my-inference-adapter": {
       "default-setting": "foo"
+    },
+    "ollama": {
+      "model":      "gemma4",
+      "think":      true,
+      "timeout":    600.0
     }
   }
 }

@@ -87,24 +87,26 @@ if __name__ == "__main__":
 ---
 ### The `@tool` Decorator
 
-The `@tool` decorator is the bridge between standard Python functions and AI logic. It transforms a function into an instance of the `Tool` class. This class automatically generates the metadata and JSON schemas required by Large Language Models (LLMs) like Gemma or Llama to understand how to interact with your code.
+The @tool decorator is the bridge between standard Python functions and AI logic. It transforms a function into an instance of the Tool class. This class automatically generates the metadata and JSON schemas required by Large Language Models (LLMs) like Gemma or Llama to understand how to interact with your code.
 
 #### Key Features
-* **Schema Generation**: Automatically extracts the tool name, description (from docstrings), and parameter types (from type hints).
-* **Execution Wrapper**: Handles both synchronous and asynchronous functions, ensuring results are formatted as strings or JSON suitable for LLM context.
-* **Type Mapping**: Maps Python types (int, str, list, etc.) to their corresponding JSON schema types.
+- **Schema Generation:** Automatically extracts the tool name, description (from docstrings), and parameter types (from type hints).
+- **Flexible Invocation:** Can be used with or without parentheses and optional parameters.
+- **Execution Wrapper:** Handles both synchronous and asynchronous functions, ensuring results are formatted as strings or JSON suitable for LLM context.
+- **Type Mapping:** Maps Python types (int, str, list, etc.) to their corresponding JSON schema types.
 
-#### Critical Usage Rules
-1. **Always Use Parentheses**: The decorator must be called with parentheses: `@tool()`. This ensures the function is wrapped into a `Tool` instance rather than remaining a raw function.
-2. **Type Hints are Mandatory**: Use Python type hints (e.g., `a: int`, `names: list`). These are used to build the "parameters" section of the JSON schema.
-3. **Docstrings Matter**: The function's docstring is used as the tool's description. Be precise, as this is the "manual" the AI reads to decide when to use the tool.
+#### Usage Rules
+1. **Flexible Decoration:** The decorator can be used as `@tool` or `@tool()`. If parameters like `name` or `description` are omitted, they are automatically derived from the function's own name and its docstring.
+2. **Type Hints are Mandatory:** Use Python type hints (e.g., `a: int`, `names: list`). These are essential to build the "parameters" section of the JSON schema.
+3. **Docstrings Matter:** Unless an explicit description is provided in the decorator, the function's docstring serves as the tool's description. Be precise, as this is the "manual" the AI reads to decide when and how to use the tool.
+4. **Metadata Fallback:** If neither a decorator parameter nor a docstring is present, a generic placeholder is used for the description to ensure schema validity.
 
-#### Example: A Mathematical Tool
+#### Examples: A Mathematical Tool
 
 ```python
 from org.slashlib.py.agent import tool
 
-@tool()
+@tool
 def add_numbers(a: int, b: int) -> int:
     """
     Adds two integers together and returns the sum.
@@ -123,14 +125,59 @@ def add_numbers(a: int, b: int) -> int:
 # my_agent = Agent(..., tools=[add_numbers])
 ```
 
-#### Custom Configuration
+```python
+from org.slashlib.py.agent import tool
 
-You can explicitly override the tool's name or description within the decorator if the function name or docstring isn't descriptive enough for the AI:
+@tool(name="sum_integers", description="Calculates the sum of two whole numbers.")
+def add_numbers(a: int, b: int) -> int:
+    """
+    Adds two integers together and returns the sum.
+    
+    Args:
+        a (int): The first number.
+        b (int): The second number.
+        
+    Returns:
+        int: The sum of a and b.
+    """
+    return a + b
+
+# Explanation of metadata prioritization:
+# ----------------------------------------
+# In this scenario, the schema values are determined as follows:
+#
+# 1. Name: "sum_integers" 
+#    -> Because the 'name' parameter is explicitly provided in the decorator, 
+#       it overrides the actual function name 'add_numbers'.
+#
+# 2. Description: "Calculates the sum of two whole numbers."
+#    -> The 'description' parameter in the decorator takes precedence. 
+#       The function's docstring is ignored in this specific case.
+```
 
 ```python
-@tool(name="global_calculator", description="Use this for any addition tasks.")
-def add(a: int, b: int):
+from org.slashlib.py.agent import tool
+
+@tool(name="sum_integers", description="Calculates the sum of two whole numbers.")
+def add_numbers(a: int, b: int) -> int:
     return a + b
+
+# Explanation of metadata prioritization (No Docstring):
+# ------------------------------------------------------
+# In this scenario, the schema values are determined as follows:
+#
+# 1. Name: "sum_integers" 
+#    -> The 'name' parameter in the decorator is used, overriding the 
+#       function name 'add_numbers'.
+#
+# 2. Description: "Calculates the sum of two whole numbers."
+#    -> The 'description' parameter in the decorator is used. 
+#       Since the function has no docstring, this is the only source 
+#       of information for the tool's description.
+#
+# Note: If the 'description' parameter were also omitted, the Tool 
+# class would fall back to a generic "No description provided." 
+# because func.__doc__ is None.
 ```
 
 ---

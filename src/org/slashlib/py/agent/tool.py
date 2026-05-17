@@ -217,22 +217,44 @@ class Tool:
             logger.error(f"Error executing tool '{self.name}': {e}")
             raise
 
-def tool(name: str = None, description: str = None):
+def tool(*args, name: str = None, description: str = None):
     """
     A decorator that converts a function into a Tool object.
+    It can be used both with and without parentheses.
+
+    If 'name' or 'description' are not provided, they default to the 
+    function's name and its docstring respectively.
+
+    Examples:
+        @tool
+        def my_func(x: int) -> str:
+            '''Brief description.'''
+            return str(x)
+
+        @tool(name="custom_name", description="A custom description")
+        def another_func(y: float) -> str:
+            return f"Value: {y}"
 
     Args:
-        name (Optional[str]): A custom name for the tool.
-        description (Optional[str]): A custom description for the tool.
+        *args: Variable length argument list. If used without parentheses, 
+            the first argument will be the function to decorate.
+        name (Optional[str]): A custom name for the tool. Defaults to func.__name__.
+        description (Optional[str]): A custom description for the tool. 
+            Defaults to func.__doc__ or a generic placeholder.
 
     Returns:
-        Callable: A decorator function that wraps the target function in a Tool instance.
+        Union[Tool, Callable]: A Tool instance if called without parentheses, 
+            or a decorator function if called with arguments.
     """
     def decorator(func):
         # Wir geben eine Instanz von Tool zurück
         return Tool(func, name=name, description=description)
-    return decorator
 
+    if len(args) == 1 and callable(args[0]):
+        # The decorator was used without parentheses: @tool
+        return decorator(args[0])
+
+    return decorator
 
 __all__ = ["tool", "Tool"]
 
